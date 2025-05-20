@@ -10,12 +10,24 @@ use Inertia\Response;
 
 class TodoController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $todos = auth()->user()->todos()->latest()->get();
+        $filter = $request->input('filter', 'all');
+        $perPage = $request->input('per_page', 10);
+
+        $query = auth()->user()->todos();
+
+        if ($filter === 'active') {
+            $query->where('is_completed', false);
+        } else if ($filter === 'completed') {
+            $query->where('is_completed', true);
+        }
+
+        $todos = $query->latest()->paginate($perPage)->withQueryString();
 
         return Inertia::render('dashboard', [
-            'todos' => $todos
+            'todos' => $todos,
+            'filter' => $filter
         ]);
     }
 
@@ -33,7 +45,17 @@ class TodoController extends Controller
 
         $request->user()->todos()->create($validated);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('dashboard', ['filter' => $request->query('filter', 'all')]);
+    }
+
+    public function edit(Todo $todo, Request $request): Response
+    {
+        $this->authorize('update', $todo);
+
+        return Inertia::render('todos/edit', [
+            'todo' => $todo,
+            'filter' => $request->query('filter', 'all')
+        ]);
     }
 
     public function update(Request $request, Todo $todo): RedirectResponse
@@ -48,7 +70,7 @@ class TodoController extends Controller
 
         $todo->update($validated);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('dashboard', ['filter' => $request->query('filter', 'all')]);
     }
 
     public function destroy(Todo $todo): RedirectResponse

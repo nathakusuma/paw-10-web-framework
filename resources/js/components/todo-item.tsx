@@ -17,9 +17,10 @@ import { useState } from 'react';
 interface TodoItemProps {
     todo: Todo;
     onEdit: (todo: Todo) => void;
+    filter: string;
 }
 
-export default function TodoItem({ todo, onEdit }: TodoItemProps) {
+export default function TodoItem({ todo, onEdit, filter }: TodoItemProps) {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -29,7 +30,8 @@ export default function TodoItem({ todo, onEdit }: TodoItemProps) {
         router.put(route('todos.update', todo.id), {
             title: todo.title,
             description: todo.description,
-            is_completed: !todo.is_completed
+            is_completed: !todo.is_completed,
+            filter: filter
         }, {
             preserveScroll: true,
             onFinish: () => setIsUpdating(false)
@@ -72,7 +74,11 @@ export default function TodoItem({ todo, onEdit }: TodoItemProps) {
                 </div>
             </div>
             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="icon" onClick={() => onEdit(todo)}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEdit(todo)}
+                >
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                 </Button>

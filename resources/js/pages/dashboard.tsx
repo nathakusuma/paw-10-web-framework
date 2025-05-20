@@ -1,7 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { Todo } from '@/types/todo';
 import TodoList from '@/components/todo-list';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -11,11 +10,39 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-interface Props {
-    todos: Todo[];
+interface PaginatedTodos {
+    current_page: number;
+    data: Array<{
+        id: number;
+        title: string;
+        description: string | null;
+        is_completed: boolean;
+        created_at: string;
+        updated_at: string;
+    }>;
+    first_page_url: string;
+    from: number;
+    last_page: number;
+    last_page_url: string;
+    links: Array<{
+        url: string | null;
+        label: string;
+        active: boolean;
+    }>;
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number;
+    total: number;
 }
 
-export default function Dashboard({ todos }: Props) {
+interface Props {
+    todos: PaginatedTodos;
+    filter: string;
+}
+
+export default function Dashboard({ todos, filter }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -26,7 +53,7 @@ export default function Dashboard({ todos }: Props) {
                     <p className="text-muted-foreground">Manage your tasks and stay organized</p>
                 </div>
 
-                <TodoList todos={todos} />
+                <TodoList todos={todos} filter={filter} />
             </div>
         </AppLayout>
     );

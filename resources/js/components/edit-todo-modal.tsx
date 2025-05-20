@@ -20,13 +20,15 @@ interface EditTodoModalProps {
     todo: Todo | null;
     isOpen: boolean;
     onClose: () => void;
+    filter: string;
 }
 
-export default function EditTodoModal({ todo, isOpen, onClose }: EditTodoModalProps) {
+export default function EditTodoModal({ todo, isOpen, onClose, filter }: EditTodoModalProps) {
     const { data, setData, put, processing, errors, reset } = useForm({
         title: '',
         description: '',
         is_completed: false,
+        filter: filter,
     });
 
     useEffect(() => {
@@ -34,10 +36,11 @@ export default function EditTodoModal({ todo, isOpen, onClose }: EditTodoModalPr
             setData({
                 title: todo.title,
                 description: todo.description || '',
-                is_completed: todo.is_completed
+                is_completed: todo.is_completed,
+                filter: filter
             });
         }
-    }, [todo, isOpen, setData]);
+    }, [todo, isOpen, setData, filter]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

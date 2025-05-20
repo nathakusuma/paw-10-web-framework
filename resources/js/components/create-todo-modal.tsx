@@ -16,12 +16,14 @@ import {
 interface CreateTodoModalProps {
     isOpen: boolean;
     onClose: () => void;
+    filter: string;
 }
 
-export default function CreateTodoModal({ isOpen, onClose }: CreateTodoModalProps) {
+export default function CreateTodoModal({ isOpen, onClose, filter }: CreateTodoModalProps) {
     const { data, setData, post, processing, errors, reset } = useForm({
         title: '',
         description: '',
+        filter: filter,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
