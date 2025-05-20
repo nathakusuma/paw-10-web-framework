@@ -16,11 +16,13 @@ import { useState } from 'react';
 
 interface TodoItemProps {
     todo: Todo;
+    onEdit: (todo: Todo) => void;
 }
 
-export default function TodoItem({ todo }: TodoItemProps) {
+export default function TodoItem({ todo, onEdit }: TodoItemProps) {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const handleToggleComplete = () => {
         setIsUpdating(true);
@@ -38,7 +40,10 @@ export default function TodoItem({ todo }: TodoItemProps) {
         setIsDeleting(true);
         router.delete(route('todos.destroy', todo.id), {
             preserveScroll: true,
-            onFinish: () => setIsDeleting(false)
+            onFinish: () => {
+                setIsDeleting(false);
+                setShowDeleteDialog(false);
+            }
         });
     };
 
@@ -67,14 +72,12 @@ export default function TodoItem({ todo }: TodoItemProps) {
                 </div>
             </div>
             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="icon" asChild>
-                    <a href={`/todos/${todo.id}/edit`}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
-                    </a>
+                <Button variant="ghost" size="icon" onClick={() => onEdit(todo)}>
+                    <Pencil className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
                 </Button>
 
-                <Dialog>
+                <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                     <DialogTrigger asChild>
                         <Button variant="ghost" size="icon">
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -90,7 +93,11 @@ export default function TodoItem({ todo }: TodoItemProps) {
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => {}} className="mt-2 sm:mt-0">
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowDeleteDialog(false)}
+                                className="mt-2 sm:mt-0"
+                            >
                                 Cancel
                             </Button>
                             <Button

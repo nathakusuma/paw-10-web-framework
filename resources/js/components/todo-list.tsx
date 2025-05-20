@@ -2,9 +2,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Todo } from '@/types/todo';
 import { PlusCircle } from 'lucide-react';
-import { Link } from '@inertiajs/react';
 import TodoItem from './todo-item';
 import { useState } from 'react';
+import CreateTodoModal from './create-todo-modal';
+import EditTodoModal from './edit-todo-modal';
 
 interface TodoListProps {
     todos: Todo[];
@@ -12,6 +13,8 @@ interface TodoListProps {
 
 export default function TodoList({ todos }: TodoListProps) {
     const [filteredStatus, setFilteredStatus] = useState<'all' | 'active' | 'completed'>('all');
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
 
     const filteredTodos = todos.filter(todo => {
         if (filteredStatus === 'all') return true;
@@ -22,6 +25,14 @@ export default function TodoList({ todos }: TodoListProps) {
 
     const activeTodoCount = todos.filter(todo => !todo.is_completed).length;
     const completedTodoCount = todos.filter(todo => todo.is_completed).length;
+
+    const handleEditTodo = (todo: Todo) => {
+        setEditingTodo(todo);
+    };
+
+    const handleCloseEditModal = () => {
+        setEditingTodo(null);
+    };
 
     return (
         <div className="space-y-4">
@@ -57,11 +68,9 @@ export default function TodoList({ todos }: TodoListProps) {
                         Completed
                     </Button>
                 </div>
-                <Button asChild>
-                    <Link href={route('todos.create')}>
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        Add Task
-                    </Link>
+                <Button onClick={() => setIsCreateModalOpen(true)}>
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Add Task
                 </Button>
             </div>
 
@@ -78,12 +87,24 @@ export default function TodoList({ todos }: TodoListProps) {
                     ) : (
                         <ul className="divide-y">
                             {filteredTodos.map((todo) => (
-                                <TodoItem key={todo.id} todo={todo} />
+                                <TodoItem key={todo.id} todo={todo} onEdit={handleEditTodo} />
                             ))}
                         </ul>
                     )}
                 </CardContent>
             </Card>
+
+            {/* Modals */}
+            <CreateTodoModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+            />
+
+            <EditTodoModal
+                todo={editingTodo}
+                isOpen={Boolean(editingTodo)}
+                onClose={handleCloseEditModal}
+            />
         </div>
     );
 }

@@ -1,7 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,45 +7,52 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { LoaderCircle } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Todo } from '@/types/todo';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog';
 
-const breadcrumbs = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-    {
-        title: 'Edit Task',
-        href: '#',
-    },
-];
-
-interface EditTodoProps {
-    todo: Todo;
+interface EditTodoModalProps {
+    todo: Todo | null;
+    isOpen: boolean;
+    onClose: () => void;
 }
 
-export default function EditTodo({ todo }: EditTodoProps) {
-    const { data, setData, put, processing, errors } = useForm({
-        title: todo.title,
-        description: todo.description || '',
-        is_completed: todo.is_completed,
+export default function EditTodoModal({ todo, isOpen, onClose }: EditTodoModalProps) {
+    const { data, setData, put, processing, errors, reset } = useForm({
+        title: todo?.title || '',
+        description: todo?.description || '',
+        is_completed: todo?.is_completed || false,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('todos.update', todo.id));
+        if (!todo) return;
+
+        put(route('todos.update', todo.id), {
+            onSuccess: () => {
+                onClose();
+            },
+        });
+    };
+
+    const handleClose = () => {
+        reset();
+        onClose();
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Edit: ${todo.title}`} />
-
-            <div className="max-w-2xl mx-auto py-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Edit Task</CardTitle>
-                    </CardHeader>
+        <Dialog open={isOpen} onOpenChange={handleClose}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Edit Task</DialogTitle>
+                </DialogHeader>
+                {todo && (
                     <form onSubmit={handleSubmit}>
-                        <CardContent className="space-y-4">
+                        <div className="space-y-4 py-4">
                             <div className="space-y-2">
                                 <Label htmlFor="title">Title</Label>
                                 <Input
@@ -81,13 +86,13 @@ export default function EditTodo({ todo }: EditTodoProps) {
                                 />
                                 <Label htmlFor="is_completed">Mark as completed</Label>
                             </div>
-                        </CardContent>
+                        </div>
 
-                        <CardFooter className="flex justify-between">
+                        <DialogFooter>
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => window.history.back()}
+                                onClick={handleClose}
                             >
                                 Cancel
                             </Button>
@@ -95,10 +100,10 @@ export default function EditTodo({ todo }: EditTodoProps) {
                                 {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                 Update Task
                             </Button>
-                        </CardFooter>
+                        </DialogFooter>
                     </form>
-                </Card>
-            </div>
-        </AppLayout>
+                )}
+            </DialogContent>
+        </Dialog>
     );
 }

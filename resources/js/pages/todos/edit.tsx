@@ -1,4 +1,4 @@
-import EditTodo from '@/components/edit-todo';
+import EditTodo from '@/components/edit-todo-modal';
 import { Todo } from '@/types/todo';
 
 interface EditProps {
