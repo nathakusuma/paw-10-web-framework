@@ -2,16 +2,27 @@
 
 use App\Http\Controllers\TodoController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Todo routes
     Route::get('dashboard', [TodoController::class, 'index'])->name('dashboard');
     Route::get('todos/create', [TodoController::class, 'create'])->name('todos.create');
     Route::post('todos', [TodoController::class, 'store'])->name('todos.store');
+    Route::get('todos/{todo}/edit', function (App\Models\Todo $todo) {
+        // Check authorization
+        \Illuminate\Support\Facades\Gate::authorize('update', $todo);
+
+        return Inertia::render('todos/edit', [
+            'todo' => $todo
+        ]);
+    })->name('todos.edit');
     Route::put('todos/{todo}', [TodoController::class, 'update'])->name('todos.update');
+    Route::patch('todos/{todo}/toggle', [TodoController::class, 'toggleComplete'])->name('todos.toggle');
     Route::delete('todos/{todo}', [TodoController::class, 'destroy'])->name('todos.destroy');
 });
 

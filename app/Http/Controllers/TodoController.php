@@ -21,7 +21,7 @@ class TodoController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Todos/Create');
+        return Inertia::render('todos/create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -33,7 +33,7 @@ class TodoController extends Controller
 
         $request->user()->todos()->create($validated);
 
-        return redirect()->route('todos.index');
+        return redirect()->route('dashboard');
     }
 
     public function update(Request $request, Todo $todo): RedirectResponse
@@ -49,7 +49,7 @@ class TodoController extends Controller
 
         $todo->update($validated);
 
-        return redirect()->route('todos.index');
+        return redirect()->route('dashboard');
     }
 
     public function destroy(Todo $todo): RedirectResponse
@@ -59,7 +59,7 @@ class TodoController extends Controller
 
         $todo->delete();
 
-        return redirect()->route('todos.index');
+        return redirect()->route('dashboard');
     }
 
     public function toggleComplete(Todo $todo): RedirectResponse
@@ -68,9 +68,9 @@ class TodoController extends Controller
         $this->authorize('update', $todo);
 
         $todo->update([
-            'completed' => !$todo->completed,
+            'is_completed' => !$todo->is_completed,
         ]);
 
-        return redirect(route('todos.index'));
+        return redirect(route('dashboard'));
     }
 }
