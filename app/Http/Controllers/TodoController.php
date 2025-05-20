@@ -38,7 +38,6 @@ class TodoController extends Controller
 
     public function update(Request $request, Todo $todo): RedirectResponse
     {
-        // Check if the todo belongs to the authenticated user
         $this->authorize('update', $todo);
 
         $validated = $request->validate([
@@ -54,23 +53,10 @@ class TodoController extends Controller
 
     public function destroy(Todo $todo): RedirectResponse
     {
-        // Check if the todo belongs to the authenticated user
         $this->authorize('delete', $todo);
 
         $todo->delete();
 
         return redirect()->route('dashboard');
-    }
-
-    public function toggleComplete(Todo $todo): RedirectResponse
-    {
-        // Check authorization
-        $this->authorize('update', $todo);
-
-        $todo->update([
-            'is_completed' => !$todo->is_completed,
-        ]);
-
-        return redirect(route('dashboard'));
     }
 }
