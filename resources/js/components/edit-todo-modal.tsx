@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { LoaderCircle } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Todo } from '@/types/todo';
+import { useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -23,10 +24,20 @@ interface EditTodoModalProps {
 
 export default function EditTodoModal({ todo, isOpen, onClose }: EditTodoModalProps) {
     const { data, setData, put, processing, errors, reset } = useForm({
-        title: todo?.title || '',
-        description: todo?.description || '',
-        is_completed: todo?.is_completed || false,
+        title: '',
+        description: '',
+        is_completed: false,
     });
+
+    useEffect(() => {
+        if (todo && isOpen) {
+            setData({
+                title: todo.title,
+                description: todo.description || '',
+                is_completed: todo.is_completed
+            });
+        }
+    }, [todo, isOpen, setData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
