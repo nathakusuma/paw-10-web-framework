@@ -5,6 +5,7 @@ namespace Tests\Feature\Todo;
 use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TodoPolicyTest extends TestCase
@@ -28,7 +29,7 @@ class TodoPolicyTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function user_can_update_own_todo()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -48,7 +49,7 @@ class TodoPolicyTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_update_other_users_todo()
     {
         $todo = Todo::factory()->create(['user_id' => $this->otherUser->id]);
@@ -66,7 +67,7 @@ class TodoPolicyTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_delete_own_todo()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -78,7 +79,7 @@ class TodoPolicyTest extends TestCase
         $this->assertDatabaseMissing('todos', ['id' => $todo->id]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_delete_other_users_todo()
     {
         $todo = Todo::factory()->create(['user_id' => $this->otherUser->id]);
@@ -90,7 +91,7 @@ class TodoPolicyTest extends TestCase
         $this->assertDatabaseHas('todos', ['id' => $todo->id]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_view_edit_form_for_own_todo()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -105,7 +106,7 @@ class TodoPolicyTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_view_edit_form_for_other_users_todo()
     {
         $todo = Todo::factory()->create(['user_id' => $this->otherUser->id]);
@@ -122,7 +123,7 @@ class TodoPolicyTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function user_cannot_change_todo_ownership_via_update()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -144,7 +145,7 @@ class TodoPolicyTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_set_arbitrary_id_when_creating_todo()
     {
         $response = $this->actingAs($this->user)
@@ -169,7 +170,7 @@ class TodoPolicyTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function nonexistent_todo_returns_404_for_update()
     {
         $response = $this->actingAs($this->user)
@@ -181,7 +182,7 @@ class TodoPolicyTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function nonexistent_todo_returns_404_for_delete()
     {
         $response = $this->actingAs($this->user)
@@ -190,7 +191,7 @@ class TodoPolicyTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function nonexistent_todo_returns_404_for_edit()
     {
         $response = $this->actingAs($this->user)
@@ -199,7 +200,7 @@ class TodoPolicyTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function invalid_todo_id_format_returns_404()
     {
         $invalidIds = ['abc', 'null', '1.5', '-1', ''];
@@ -218,7 +219,7 @@ class TodoPolicyTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function guest_redirected_to_login_for_all_protected_routes()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -248,7 +249,7 @@ class TodoPolicyTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function filter_state_preserved_across_operations()
     {
         $activeFilter = 'active';
@@ -275,7 +276,7 @@ class TodoPolicyTest extends TestCase
         $response->assertRedirect("/dashboard?filter={$activeFilter}");
     }
 
-    /** @test */
+    #[Test]
     public function user_session_isolation()
     {
         // Create todos for both users
@@ -310,7 +311,7 @@ class TodoPolicyTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function multiple_users_can_operate_simultaneously()
     {
         // Simulate concurrent operations
@@ -359,7 +360,7 @@ class TodoPolicyTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function todo_timestamps_are_updated_correctly()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -381,7 +382,7 @@ class TodoPolicyTest extends TestCase
         $this->assertTrue($updatedTodo->updated_at > $originalUpdatedAt);
     }
 
-    /** @test */
+    #[Test]
     public function todo_created_at_timestamp_is_immutable()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -405,7 +406,7 @@ class TodoPolicyTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function dashboard_returns_correct_inertia_structure()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -423,7 +424,7 @@ class TodoPolicyTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function edit_page_returns_correct_inertia_structure()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);

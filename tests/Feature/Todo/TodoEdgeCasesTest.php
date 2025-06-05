@@ -5,6 +5,7 @@ namespace Tests\Feature\Todo;
 use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TodoEdgeCasesTest extends TestCase
@@ -25,7 +26,7 @@ class TodoEdgeCasesTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function create_todo_with_special_characters_in_title()
     {
         $todoData = [
@@ -45,7 +46,7 @@ class TodoEdgeCasesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function create_todo_with_unicode_characters()
     {
         $todoData = [
@@ -65,7 +66,7 @@ class TodoEdgeCasesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function create_todo_with_html_tags_in_input()
     {
         $todoData = [
@@ -86,7 +87,7 @@ class TodoEdgeCasesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function create_todo_with_sql_injection_attempt()
     {
         $todoData = [
@@ -112,10 +113,11 @@ class TodoEdgeCasesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function create_todo_with_very_long_description()
     {
-        $longDescription = str_repeat('This is a very long description. ', 500); // ~15,000 chars
+        // Create a description that's exactly at the limit (10,000 chars)
+        $longDescription = str_repeat('This is a very long description. ', 294); // ~9,996 chars - within 10k limit
 
         $todoData = [
             'title' => 'Todo with long description',
@@ -134,7 +136,24 @@ class TodoEdgeCasesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
+    public function create_todo_description_cannot_exceed_10000_characters()
+    {
+        $tooLongDescription = str_repeat('x', 10001); // Exceeds 10k limit
+
+        $todoData = [
+            'title' => 'Todo with too long description',
+            'description' => $tooLongDescription,
+            'filter' => 'all'
+        ];
+
+        $response = $this->actingAs($this->user)
+            ->post('/todos', $todoData);
+
+        $response->assertSessionHasErrors(['description']);
+    }
+
+    #[Test]
     public function create_todo_with_whitespace_only_title_fails()
     {
         $todoData = [
@@ -148,7 +167,7 @@ class TodoEdgeCasesTest extends TestCase
         $response->assertSessionHasErrors(['title']);
     }
 
-    /** @test */
+    #[Test]
     public function create_todo_trims_whitespace_from_title()
     {
         $todoData = [
@@ -175,7 +194,7 @@ class TodoEdgeCasesTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function pagination_handles_invalid_page_numbers()
     {
         Todo::factory()->count(15)->create(['user_id' => $this->user->id]);
@@ -193,7 +212,7 @@ class TodoEdgeCasesTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[Test]
     public function pagination_with_different_per_page_values()
     {
         Todo::factory()->count(25)->create(['user_id' => $this->user->id]);
@@ -210,7 +229,7 @@ class TodoEdgeCasesTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function pagination_with_invalid_per_page_values()
     {
         Todo::factory()->count(15)->create(['user_id' => $this->user->id]);
@@ -234,7 +253,7 @@ class TodoEdgeCasesTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function filter_handles_invalid_filter_values()
     {
         Todo::factory()->create(['user_id' => $this->user->id, 'is_completed' => false]);
@@ -254,7 +273,7 @@ class TodoEdgeCasesTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function filter_is_case_sensitive()
     {
         Todo::factory()->create(['user_id' => $this->user->id, 'is_completed' => false]);
@@ -273,7 +292,7 @@ class TodoEdgeCasesTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function updating_deleted_todo_returns_404()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -291,7 +310,7 @@ class TodoEdgeCasesTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function editing_deleted_todo_returns_404()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -312,7 +331,7 @@ class TodoEdgeCasesTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function creating_todo_for_nonexistent_user_fails()
     {
         // This should never happen in normal flow, but test the constraint
@@ -325,7 +344,7 @@ class TodoEdgeCasesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function todos_are_deleted_when_user_is_deleted()
     {
         $user = User::factory()->create();
@@ -344,7 +363,7 @@ class TodoEdgeCasesTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function dashboard_performance_with_many_todos()
     {
         // Create a large number of todos
@@ -363,7 +382,7 @@ class TodoEdgeCasesTest extends TestCase
         $this->assertLessThan(5000, $executionTime, 'Dashboard took too long to load with 1000 todos');
     }
 
-    /** @test */
+    #[Test]
     public function search_with_special_query_parameters()
     {
         Todo::factory()->create([
@@ -393,7 +412,7 @@ class TodoEdgeCasesTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function operations_require_csrf_token()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -417,7 +436,7 @@ class TodoEdgeCasesTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function title_length_boundary_testing()
     {
         // Test exactly 255 characters (should pass)
@@ -439,7 +458,7 @@ class TodoEdgeCasesTest extends TestCase
         $response->assertSessionHasErrors(['title']);
     }
 
-    /** @test */
+    #[Test]
     public function boolean_field_boundary_testing()
     {
         $todo = Todo::factory()->create(['user_id' => $this->user->id]);
@@ -469,17 +488,7 @@ class TodoEdgeCasesTest extends TestCase
      * ========================================
      */
 
-    /** @test */
-    public function system_handles_database_errors_gracefully()
-    {
-        // This is difficult to test without actually breaking the database
-        // In a real scenario, you might use database mocking or
-        // temporarily corrupt the database connection
-
-        $this->markTestSkipped('Database error simulation requires advanced setup');
-    }
-
-    /** @test */
+    #[Test]
     public function system_handles_memory_pressure()
     {
         // Create a scenario that uses significant memory but with reasonable limits

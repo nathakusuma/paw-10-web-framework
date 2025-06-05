@@ -5,6 +5,7 @@ namespace Tests\Feature\Todo;
 use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TodoFunctionalTest extends TestCase
@@ -29,7 +30,7 @@ class TodoFunctionalTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_view_create_todo_page()
     {
         $response = $this->actingAs($this->user)->get('/todos/create');
@@ -38,7 +39,7 @@ class TodoFunctionalTest extends TestCase
         $response->assertInertia(fn ($page) => $page->component('todos/create'));
     }
 
-    /** @test */
+    #[Test]
     public function guest_cannot_view_create_todo_page()
     {
         $response = $this->get('/todos/create');
@@ -46,7 +47,7 @@ class TodoFunctionalTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_create_todo_with_valid_data()
     {
         $todoData = [
@@ -68,7 +69,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_create_todo_without_description()
     {
         $todoData = [
@@ -89,7 +90,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function create_todo_requires_title()
     {
         $todoData = [
@@ -107,7 +108,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function create_todo_title_cannot_exceed_255_characters()
     {
         $todoData = [
@@ -125,7 +126,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function guest_cannot_create_todo()
     {
         $todoData = [
@@ -147,20 +148,22 @@ class TodoFunctionalTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_view_dashboard_with_todos()
     {
-        // Create test todos
+        // Create test todos with specific timestamps to ensure predictable ordering
         $activeTodo = Todo::factory()->create([
             'user_id' => $this->user->id,
             'title' => 'Active Todo',
-            'is_completed' => false
+            'is_completed' => false,
+            'created_at' => now()->subMinutes(10), // Created 10 minutes ago
         ]);
 
         $completedTodo = Todo::factory()->create([
             'user_id' => $this->user->id,
             'title' => 'Completed Todo',
-            'is_completed' => true
+            'is_completed' => true,
+            'created_at' => now(), // Created now (more recent)
         ]);
 
         $response = $this->actingAs($this->user)->get('/dashboard');
@@ -169,12 +172,12 @@ class TodoFunctionalTest extends TestCase
         $response->assertInertia(fn ($page) =>
         $page->component('dashboard')
             ->has('todos.data', 2)
-            ->where('todos.data.0.title', 'Completed Todo') // Latest first
+            ->where('todos.data.0.title', 'Completed Todo') // Latest first (created more recently)
             ->where('todos.data.1.title', 'Active Todo')
         );
     }
 
-    /** @test */
+    #[Test]
     public function user_can_filter_todos_by_active_status()
     {
         // Create test todos
@@ -202,7 +205,7 @@ class TodoFunctionalTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function user_can_filter_todos_by_completed_status()
     {
         // Create test todos
@@ -230,7 +233,7 @@ class TodoFunctionalTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function todos_are_paginated_correctly()
     {
         // Create 25 todos (more than default pagination)
@@ -249,7 +252,7 @@ class TodoFunctionalTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function user_can_only_see_their_own_todos()
     {
         // Create todos for different users
@@ -273,7 +276,7 @@ class TodoFunctionalTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function guest_cannot_view_dashboard()
     {
         $response = $this->get('/dashboard');
@@ -287,7 +290,7 @@ class TodoFunctionalTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function user_can_view_edit_page_for_their_todo()
     {
         $todo = Todo::factory()->create([
@@ -306,7 +309,7 @@ class TodoFunctionalTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_view_edit_page_for_other_users_todo()
     {
         $todo = Todo::factory()->create([
@@ -320,7 +323,7 @@ class TodoFunctionalTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_update_their_todo_with_valid_data()
     {
         $todo = Todo::factory()->create([
@@ -350,7 +353,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_toggle_todo_completion_status()
     {
         $todo = Todo::factory()->create([
@@ -377,7 +380,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_update_other_users_todo()
     {
         $todo = Todo::factory()->create([
@@ -401,7 +404,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function update_todo_requires_valid_title()
     {
         $todo = Todo::factory()->create([
@@ -425,7 +428,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function update_todo_title_cannot_exceed_255_characters()
     {
         $todo = Todo::factory()->create([
@@ -455,7 +458,7 @@ class TodoFunctionalTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function user_can_delete_their_own_todo()
     {
         $todo = Todo::factory()->create([
@@ -473,7 +476,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_delete_other_users_todo()
     {
         $todo = Todo::factory()->create([
@@ -492,7 +495,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function delete_nonexistent_todo_returns_404()
     {
         $nonexistentId = 99999;
@@ -503,7 +506,7 @@ class TodoFunctionalTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function guest_cannot_delete_todo()
     {
         $todo = Todo::factory()->create([
@@ -527,7 +530,7 @@ class TodoFunctionalTest extends TestCase
      * ========================================
      */
 
-    /** @test */
+    #[Test]
     public function complete_todo_workflow_create_read_update_delete()
     {
         // 1. CREATE: Create a new todo
@@ -582,7 +585,7 @@ class TodoFunctionalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function filter_persistence_across_operations()
     {
         $todo = Todo::factory()->create([
@@ -615,7 +618,7 @@ class TodoFunctionalTest extends TestCase
         $response->assertRedirect('/dashboard?filter=active');
     }
 
-    /** @test */
+    #[Test]
     public function bulk_operations_with_multiple_todos()
     {
         // Create multiple todos
