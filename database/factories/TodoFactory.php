@@ -48,4 +48,16 @@ class TodoFactory extends Factory
             'is_completed' => false,
         ]);
     }
+
+    /**
+     * Create todo with specific creation time for testing
+     */
+    public function createdAt($datetime): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'created_at' => $datetime,
+            'updated_at' => $datetime,
+        ]);
+    }
 }
+

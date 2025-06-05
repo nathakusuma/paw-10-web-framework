@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TodoRequest;
 use App\Models\Todo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,15 +16,17 @@ class TodoController extends Controller
         $filter = $request->input('filter', 'all');
         $perPage = $request->input('per_page', 10);
 
+        $perPage = is_numeric($perPage) && $perPage > 0 && $perPage <= 100 ? (int)$perPage : 10;
+
         $query = auth()->user()->todos();
 
         if ($filter === 'active') {
             $query->where('is_completed', false);
-        } else if ($filter === 'completed') {
+        } elseif ($filter === 'completed') {
             $query->where('is_completed', true);
         }
 
-        $todos = $query->latest()->paginate($perPage)->withQueryString();
+        $todos = $query->latest('created_at')->paginate($perPage)->withQueryString();
 
         return Inertia::render('dashboard', [
             'todos' => $todos,
@@ -36,16 +39,15 @@ class TodoController extends Controller
         return Inertia::render('todos/create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(TodoRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
-        $request->user()->todos()->create($validated);
+        $todoData = collect($validated)->except(['filter'])->toArray();
 
-        return redirect()->route('dashboard', ['filter' => $request->query('filter', 'all')]);
+        $request->user()->todos()->create($todoData);
+
+        return redirect()->route('dashboard', ['filter' => $validated['filter'] ?? 'all']);
     }
 
     public function edit(Todo $todo, Request $request): Response
@@ -58,19 +60,17 @@ class TodoController extends Controller
         ]);
     }
 
-    public function update(Request $request, Todo $todo): RedirectResponse
+    public function update(TodoRequest $request, Todo $todo): RedirectResponse
     {
         $this->authorize('update', $todo);
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_completed' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
-        $todo->update($validated);
+        $todoData = collect($validated)->except(['filter'])->toArray();
 
-        return redirect()->route('dashboard', ['filter' => $request->query('filter', 'all')]);
+        $todo->update($todoData);
+
+        return redirect()->route('dashboard', ['filter' => $validated['filter'] ?? 'all']);
     }
 
     public function destroy(Todo $todo): RedirectResponse

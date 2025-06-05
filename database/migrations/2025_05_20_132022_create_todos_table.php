@@ -14,10 +14,13 @@ return new class extends Migration
         Schema::create('todos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('title');
+            $table->string('title', 255);
             $table->text('description')->nullable();
             $table->boolean('is_completed')->default(false);
             $table->timestamps();
+
+            $table->index(['user_id', 'is_completed']);
+            $table->index(['user_id', 'created_at']);
         });
     }
 
